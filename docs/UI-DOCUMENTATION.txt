@@ -1,0 +1,704 @@
+================================================================================
+                    CAMPUS GUIDE 3D — UI DOCUMENTATION
+================================================================================
+
+PROJECT OVERVIEW
+--------------------------------------------------------------------------------
+Name        : Campus Guide 3D
+Purpose     : Production-ready web-based digital twin of the college campus.
+              Students, visitors, faculty, and administrators can search locations,
+              explore the campus cinematically, and navigate interactively in 3D
+              — all inside the browser.
+Tech Stack  : Next.js 15 · TypeScript · Tailwind CSS v4 · Framer Motion ·
+              React Three Fiber · Rapier · ecctrl · Zustand · MongoDB Atlas ·
+              NextAuth · Zod · Lucide React
+Monorepo    :
+  blender/         — Source of truth; campus models originate here
+  unity-prototype/ — Reference only; validated gameplay concepts
+  docs/            — Architecture & system design
+  data/            — Seed JSON datasets
+  database/scripts/- MongoDB import/export utilities
+  web-platform/    — Next.js 15 production application (PRIMARY UI PROJECT)
+Asset Pipeline: Blender → Optimized GLB (Draco) → React Three Fiber → Vercel CDN
+Single Auth. Campus Model: web-platform/public/models/campus.glb
+
+
+================================================================================
+1. DESIGN SYSTEM
+================================================================================
+
+1.1 DESIGN PHILOSOPHY
+--------------------------------------------------------------------------------
+Style      : Neo-Brutalist
+Motto      : Bold typography, hard shadows, thick borders, high contrast,
+             playful motion, unapologetically utilitarian.
+
+1.2 COLOR TOKENS (semantic)
+--------------------------------------------------------------------------------
+Token                                    Hex / Value         Usage
+--------------------------------------------------------------------------------
+--color-background                      #fafafa             Default page background
+--color-foreground                      #0a0a0a             Primary text color
+--color-neo-yellow                      #ffe600             Primary CTA, warnings,
+                                                          auth pages, game accents
+--color-neo-pink                        #ff6b9d             Danger actions, route lines,
+                                                          alerts
+--color-neo-blue                        #4ecdc4             Secondary actions,
+                                                          explore mode accents
+--color-neo-purple                      #a855f7             Tertiary accent
+--color-neo-border                      #0a0a0a              All borders, shadows
+--font-sans                             Geist Sans          Body, headings, UI
+--font-mono                             Geist Mono          Code, data, labels
+
+PAGE THEME BACKGROUNDS (data-page-theme attribute on <html>):
+--------------------------------------------------------------------------------
+Theme        --page-bg           --page-bg-soft        --page-accent
+--------------------------------------------------------------------------------
+home         #dff4ff             #f7fcff               #4ecdc4
+campus       #dff4ff             #bfeeff               #4ecdc4
+explore      #06151f             #0a2030               #4ecdc4
+game         #05070d             #0b1020               #ffe600
+admin        #ffe600             #fff4a3               #000000
+login        #ffe600             #fff4a3               #000000
+default      (inherits #fafafa)  (inherits)            (inherits)
+
+1.3 TYPOGRAPHY
+--------------------------------------------------------------------------------
+Font Family  : Geist Sans (primary), Geist Mono (monospace)
+Weights      : 400 (normal), 700 (bold), 800 (extra bold), 900 (black)
+Tone Rules   : Headings → uppercase, bold, tight tracking
+               Labels  → uppercase, font-bold, tracking-widest
+               Body    → normal case, readable weight
+               Data    → font-mono
+
+1.4 SHADOWS & BORDERS
+--------------------------------------------------------------------------------
+Class              Shadow / Border Style
+--------------------------------------------------------------------------------
+neo-border         2px solid #0a0a0a
+neo-shadow         4px 4px 0 0 #0a0a0a
+neo-shadow-lg      6px 6px 0 0 #0a0a0a
+neo-card           2px solid #0a0a0a + 4px 4px 0 0 #0a0a0a + white bg + p-4
+neo-header-inner   3px solid #0a0a0a + 8px 8px 0 #0a0a0a + white bg + rounded-24px
+
+Interaction pattern (all interactive elements):
+  Hover     : translate(2px, 2px) + shadow reduces by 2px
+  Active    : translate(3px, 3px) + shadow removed
+  Focus     : 3px outline ring (focus-visible) with high contrast
+
+1.5 MOTION
+--------------------------------------------------------------------------------
+Library    : Framer Motion (for animated interactions)
+Durations  : 100ms hover/active transitions (CSS)
+            120ms–240ms motion durations (Framer Motion)
+Animation  : Button tap → whileTap={{ x: 2, y: 2 }}
+             Search results → fade + slide up (opacity + translateY)
+             Loading → progress percentage with @react-three/drei
+
+1.6 RESPONSIVE BREAKPOINTS
+--------------------------------------------------------------------------------
+Breakpoint  Target                Behavior
+--------------------------------------------------------------------------------
+< 980px     Mobile nav            .neo-nav hidden, .neo-mobile-toggle shown
+                                Mobile menu slides down with .open class
+< 480px     Small mobile          .neo-logo-text hidden, reduced padding
+                                .neo-header-inner gap reduced to 10px
+
+1.7 ACCESSIBILITY STANDARDS
+--------------------------------------------------------------------------------
+- All interactive elements keyboard operable (Tab + Enter/Space)
+- Focus-visible: 3px ring with contrast >= 3:1 against surface
+- Body text contrast >= 4.5:1
+- ARIA live regions for search results and route navigation
+- Skip links for keyboard users
+- role="status" on loading overlays
+- role="alert" on error messages
+- aria-label on icon-only buttons
+- aria-pressed on toggle buttons (mode switcher)
+- aria-current="page" on active nav links
+- aria-live="polite" on dynamic content regions
+
+
+================================================================================
+2. SHARED UI COMPONENTS
+================================================================================
+
+2.1 NEOBUTTON
+--------------------------------------------------------------------------------
+Location  : src/components/neo-brutal/neo-button.tsx
+Purpose   : Primary interactive control element with neo-brutalist styling.
+Props     : variant ("primary" | "secondary" | "danger"), size ("sm" | "md" | "lg"),
+            className, ...standard button props
+Variants  : primary  → bg-neo-yellow (default CTA)
+            secondary→ bg-neo-blue (secondary action)
+            danger   → bg-neo-pink (destructive action)
+Sizes     : sm  → px-3 py-1.5 text-sm
+            md  → px-6 py-3 text-base (default)
+            lg  → px-8 py-4 text-lg
+Motion    : whileTap={{ x: 2, y: 2 }} (Framer Motion)
+Classes   : neo-border neo-shadow font-bold tracking-wide uppercase
+            transition-colors
+            focus-visible:outline-2 focus-visible:outline-offset-4
+            disabled:cursor-not-allowed disabled:opacity-50
+
+2.2 NEOCARD
+--------------------------------------------------------------------------------
+Location  : src/components/neo-brutal/neo-card.tsx
+Purpose   : Container element for content grouping with neo-brutalist styling.
+Classes   : neo-card (border-2 border-[#0a0a0a] bg-white p-4
+                          box-shadow: 4px 4px 0 0 #0a0a0a)
+
+2.3 NEOINPUT
+--------------------------------------------------------------------------------
+Location  : src/components/neo-brutal/neo-card.tsx (exported same file)
+Purpose   : Text input field with neo-brutalist styling.
+Classes   : neo-border w-full bg-white px-4 py-3 text-lg font-medium
+            focus-visible:ring-2 focus-visible:ring-neo-yellow
+            disabled:cursor-not-allowed disabled:opacity-50
+
+2.4 NEO HEADER (Global)
+--------------------------------------------------------------------------------
+Location  : src/app/globals.css (.neo-header* classes) + src/components/layout/header.tsx
+Purpose   : Fixed global navigation bar visible on all pages.
+Structure  : .neo-header (fixed, z-9999)
+              .neo-header-inner (flex, white, 3px border, 8px shadow, rounded-24px)
+                .neo-history  (back/forward buttons)
+                .neo-logo     (brand link + dot indicator)
+                .neo-nav      (desktop nav links)
+                .neo-actions  (search button + enter campus CTA)
+                .neo-mobile-toggle (hamburger, hidden on desktop)
+Navigation: Home | Campus | Explore | Game | Admin (with active state)
+Mobile    : Hamburger opens .neo-mobile-menu (white, 3px border, 8px shadow)
+
+
+================================================================================
+3. PAGES & SCREENS
+================================================================================
+
+3.1 HOME PAGE (/)
+--------------------------------------------------------------------------------
+Location  : src/app/page.tsx
+Theme     : home (#dff4ff background)
+Layout    : Centered hero with two-column grid (stacks on mobile)
+Sections  :
+  1. Hero Header
+     - Small text: "DIGITAL CAMPUS TWIN" (font-mono, uppercase, tracking-widest)
+     - H2: "Find Anyone. Go Anywhere." (text-5xl/6xl, font-black, uppercase,
+       tracking-tight, leading-tight)
+     - Paragraph: descriptive text (text-lg, text-gray-700)
+     - Two CTAs: "Enter Campus" (NeoButton primary) + "Start Navigation"
+                 (NeoButton secondary)
+
+  2. Features Grid (NeoCard container)
+     - 2x2 grid of feature tiles, each with icon + uppercase label + description
+     - Features: Smart Search, 3D Explore, Live Status, Indoor Nav
+     - Each tile: .neo-border p-4 with icon, bold uppercase title, gray subtitle
+
+3.2 CAMPUS EXPERIENCE (/campus)
+--------------------------------------------------------------------------------
+Location  : src/app/campus/page.tsx → src/features/explore/campus-experience.tsx
+Theme     : campus (#dff4ff background, or #06151f when mode=game from query)
+Purpose   : Main 3D campus interaction hub.
+Features  :
+  - Full-viewport canvas (h-[100svh]) with .campus-shell background
+  - Skip link: "Skip to campus search" (keyboard accessibility)
+  - 3D Canvas: CampusCanvas component renders React Three Fiber Canvas
+  - Search Panel: Floating dock on the left side (#campus-search)
+  - Route Status Footer: Shows navigation instructions when route is active
+  - Game Mode: When ?mode=game query param present, renders Unity mode instead
+
+3.3 EXPLORE MODE (/exploremode)
+--------------------------------------------------------------------------------
+Location  : src/app/exploremode/page.tsx
+Theme     : explore (#06151f background)
+Purpose   : Cinematic 3D exploration experience.
+Features  :
+  - CampusCanvas (R3F Canvas with shadows, dpr [1, 1.5])
+  - CinematicCamera (animated camera focus on targets)
+  - No search panel or HUD by default (pure 3D experience)
+
+3.4 GAME MODE (/gamemode)
+--------------------------------------------------------------------------------
+Location  : src/app/gamemode/page.tsx
+Theme     : game (#05070d background)
+Purpose   : Third-person WASD navigation with physics-based gameplay.
+Features  :
+  - UnityMode component (dynamic import, SSR disabled)
+  - Game Player (Ecctrl capsule character, Rapier physics)
+  - HUD overlays (absolute positioned cards):
+    * Score card (top-left)
+    * Health bar (animated progress bar, top-left)
+    * Level card (top-left)
+    * Time Left card (top-right)
+    * Objective card (top-right, dismissible)
+    * Crosshair (center)
+  - Footer hints: WASD controls + Pause/Test buttons
+  - Mini map placeholder (bottom-left)
+  - ModeSwitcher (top-right, explore/game toggle)
+
+3.5 SEARCH PANEL (Overlay on /campus)
+--------------------------------------------------------------------------------
+Location  : src/features/search/search-panel.tsx
+Container : NeoCard with .campus-search-panel (w-full max-w-md)
+Sections  :
+  - Heading: icon + "Directory / 01" + "Where are you going?"
+  - NeoInput: placeholder "Faculty, room, department..."
+    Debounced search (300ms delay, requires query >= 2 chars)
+  - Results List (max-h-80, overflow-y-auto, aria-live="polite"):
+    * Each result: title + subtitle + action buttons
+    * Actions per result: View (Eye icon, secondary), Explore (MapPin, primary),
+      Navigate (Compass, danger)
+    * AnimatePresence + motion.div for smooth entry
+  - Search API: GET /api/search?q=...
+  - Navigation API: POST /api/navigation/path
+
+3.6 LOGIN PAGE (/login)
+--------------------------------------------------------------------------------
+Location  : src/app/login/page.tsx
+Theme     : login (#ffe600 background)
+Layout    : Centered form card, min-h-screen flex center
+Content   :
+  1. NeoCard (w-full max-w-md)
+     - H1: "Admin Login" (text-2xl, font-black, uppercase)
+     - Success message (teal-800)
+     - Error message (red-600) with detailed reasons:
+       * ACCOUNT_LOCKED → "locked due to too many failed attempts. Try again in 15 min."
+       * ACCOUNT_SUSPENDED → "suspended. Contact Super Admin."
+       * EMAIL_NOT_VERIFIED → "verify your email before signing in."
+       * INVALID_CREDENTIALS → "Invalid email or password."
+     - Form fields: Email (NeoInput), Password (NeoInput)
+     - Remember Me checkbox (accent-yellow-400)
+     - Forgot Password link
+     - Sign In button (NeoButton, full-width, disabled while loading)
+     - Divider: "Or connect via"
+     - Google SSO button (NeoButton secondary, with Google SVG icon)
+     - Sign Up link
+  2. Query param handling: ?verified=true/false, ?error=...
+
+3.7 REGISTER PAGE (/register)
+--------------------------------------------------------------------------------
+Location  : src/app/register/page.tsx
+Theme     : login (#ffe600 background)
+Layout    : Centered form card (identical structure to login)
+Content   :
+  1. NeoCard (w-full max-w-md)
+     - H1: "Create Account"
+     - Success state: message + "Back to Login" button
+     - Form fields: Full Name, Email, Password, Confirm Password (all NeoInput)
+     - Error message (red-600)
+     - Sign Up button (full-width)
+     - Sign In link
+
+3.8 FORGOT PASSWORD PAGE (/forgot-password)
+--------------------------------------------------------------------------------
+Location  : src/app/forgot-password/page.tsx
+Theme     : login (#ffe600 background)
+Layout    : Centered form card
+Content   :
+  1. NeoCard (w-full max-w-md)
+     - H1: "Forgot Password"
+     - Description text
+     - Email input (NeoInput)
+     - Send Reset Link button
+     - Sign In link
+
+3.9 RESET PASSWORD PAGE (/reset-password)
+--------------------------------------------------------------------------------
+Location  : src/app/reset-password/page.tsx
+Theme     : login (#ffe600 background)
+Layout    : Centered form card
+Two Flows :
+  1. Token-based reset (?token=... in URL)
+     - Shows "Reset Password" H1
+     - If no token → error + "Request New Link" button
+     - If success → message + "Go to Login" button
+     - Form: New Password + Confirm Password
+  2. Forced password change (authenticated users with requiresPasswordChange)
+     - H1: "Password Change Required" (red-600)
+     - Warning text about first login
+     - Form: Current Password + New Password + Confirm New Password
+     - On success: auto-redirects to /admin after 1.5s
+
+3.10 ADMIN DASHBOARD (/admin)
+--------------------------------------------------------------------------------
+Location  : src/app/admin/page.tsx
+Theme     : admin (#ffe600 background)
+Layout    : .e-page container (page-content padding)
+Auth      : Server-side session check, role-based content
+Content   :
+  1. Page Header
+     - H1: "Dashboard" with .e-page-title
+     - Subtitle: "Super Admin Portal" or "Sub Admin Portal"
+     - SignOut button
+  2. Stats Grid (permission-filtered)
+     - NeoCard grid: Faculty count, Rooms count, Departments count, Notices count
+     - Only shows stats user has permission to view
+  3. Navigation Links Grid (permission-filtered)
+     - Cards with icons:
+       * Faculty Management (Users icon)
+       * Rooms (DoorOpen icon)
+       * Departments (Building2 icon)
+       * Notices (Bell icon)
+       * Navigation (Navigation icon, superadmin only)
+       * Analytics (BarChart3 icon)
+       * Import/Export (Upload icon, superadmin only)
+     - Super Admin also sees: User Management (ShieldAlert icon)
+  4. Empty state: "No Modules Assigned" with contact message
+
+3.11 ADMIN FACULTY MANAGEMENT (/admin/faculty)
+--------------------------------------------------------------------------------
+Location  : src/app/admin/faculty/page.tsx
+Layout    : .e-page container
+Content   :
+  1. Page Header: "Faculty Management" + "Manage faculty records and status"
+  2. Faculty List (.e-list):
+     - NeoCard per faculty member (.e-list-item)
+     - Body: Name (bold) + Department · Room
+     - Badge: status (available/away/etc.) with .e-badge
+     - Server-side data with local fallback to data/faculty.json
+
+3.12 ADMIN USER MANAGEMENT (/admin/users)
+--------------------------------------------------------------------------------
+Location  : src/app/admin/users/page.tsx
+Layout    : .e-page container
+Content   :
+  1. Page Header: "User Management" + "Configure Sub Admin access..."
+     + "Add Sub Admin" button
+  2. Tabs: Sub Admins | Security & Audit Logs
+     - Active tab: bg-neo-yellow neo-border neo-shadow-sm
+  3. Users Tab:
+     - Table with columns: Name, Email, Role, Permissions, Status, Actions
+     - Role badges: superadmin (bg-neo-pink), subadmin (bg-neo-blue)
+     - Permission tags: small font-mono badges
+     - Status toggle buttons (green/red, disabled for superadmin)
+     - Action buttons: Edit, Delete (danger variant)
+  4. Logs Tab:
+     - Table: Timestamp, User ID, Action, Target, IP Address, Metadata
+     - Font-mono text, hover:bg-gray-50/50
+  5. Modal (Create/Edit Sub Admin):
+     - Full form: Name, Email, Password, Status, Permissions checkboxes
+     - Permission checkboxes with description text
+     - Cancel / Save Changes buttons
+
+3.13 3D CANVAS COMPONENT
+--------------------------------------------------------------------------------
+Location  : src/components/3d/campus-canvas.tsx
+Purpose   : Renders the React Three Fiber Canvas hosting the campus 3D scene.
+Config    : shadows enabled, camera [0, 12, 24], fov 50, near 0.1, far 500
+              dpr [1, 1.5], antialias: true, powerPreference: "high-performance"
+Children  : Suspense → CampusWorld (mode-aware content)
+Overlay   : SceneLoader (progress indicator)
+
+3.14 SCENE LOADER
+--------------------------------------------------------------------------------
+Location  : src/components/3d/scene-loader.tsx
+Purpose   : Loading overlay while 3D assets are being fetched.
+Display   : Absolute inset overlay, bg-black/40, centered NeoCard
+            - Text: "Loading Campus" (uppercase, font-black)
+            - Progress: percentage with font-mono text-2xl
+Accessibility: pointer-events-none (non-blocking)
+Hook       : Uses @react-three/drei useProgress()
+Logic      : Calls setSceneReady(true) when active=false && progress=100
+
+3.15 MODE SWITCHER
+--------------------------------------------------------------------------------
+Location  : src/features/explore/mode-switcher.tsx
+Purpose   : Toggle between Explore and Game modes while in 3D view.
+Placement  : Absolute top-5 right-5 z-20 (on game mode pages)
+Content    : Two NeoButton (sm):
+             - Explore (Sparkles icon, primary when active)
+             - Game (Gamepad2 icon, primary when active)
+Interaction: aria-pressed on both buttons, keyboard accessible
+
+3.16 ROUTE VISUALIZER (3D)
+--------------------------------------------------------------------------------
+Location  : src/features/navigation/route-visualizer.tsx
+Purpose   : Renders 3D pathfinding visualization in the scene.
+Display    : Pink line (#ff6b9d) showing route path
+            Destination marker: pink sphere with emissive glow at end of path
+
+
+================================================================================
+4. STATE MANAGEMENT (Zustand Stores)
+================================================================================
+
+4.1 APP STORE (useAppStore)
+--------------------------------------------------------------------------------
+Location  : src/store/use-app-store.ts
+Purpose   : Global app-level state for interaction mode and scene readiness.
+State     :
+  mode           : InteractionMode ("explore" | "game")
+  previousMode   : InteractionMode | null
+  isSceneReady   : boolean
+  isLoading      : boolean
+  activePanel    : AppPanel ("search" | "info" | "navigation" | null)
+Actions   :
+  setMode(mode)               → switches mode, preserves previous
+  setSceneReady(ready)        → updates both isSceneReady and isLoading
+  setLoading(loading)         → updates isLoading
+  togglePanel(panel)          → toggles panel open/closed
+
+4.2 SEARCH STORE (useSearchStore)
+--------------------------------------------------------------------------------
+Location  : src/store/use-search-store.ts
+Purpose   : Search query, results, and recent searches.
+
+4.3 NAVIGATION STORE (useNavigationStore)
+--------------------------------------------------------------------------------
+Location  : src/store/use-navigation-store.ts
+Purpose   : Active route, waypoints, and navigation state.
+
+4.4 WORLD STORE (useWorldStore)
+--------------------------------------------------------------------------------
+Location  : src/store/use-world-store.ts
+Purpose   : 3D world camera commands and target focus.
+
+4.5 PLAYER STORE (usePlayerStore)
+--------------------------------------------------------------------------------
+Location  : src/store/use-player-store.ts
+Purpose   : Player position, spawn point, and movement state.
+
+
+================================================================================
+5. PAGE THEME SYSTEM
+================================================================================
+
+Location  : src/components/layout/page-theme.tsx
+Purpose   : Dynamically sets page background themes based on route and query params.
+Mechanism : Sets data-page-theme attribute on <html> and <body>
+            CSS variables cascade: --page-bg, --page-bg-soft, --page-accent
+Mapping   :
+  /                   → "home"
+  /campus             → "campus" (or "game" if ?mode=game)
+  /admin*             → "admin"
+  /login              → "login"
+  /exploremode        → "explore"
+  /gamemode           → "game"
+  others              → "default"
+Visual    : .page-theme-backdrop renders decorative shapes (rotated accent box,
+            white circle) with low opacity for subtle brand reinforcement.
+
+
+================================================================================
+6. KEYBOARD SHORTCUTS & INTERACTIONS
+================================================================================
+
+Element                          Key(s)               Action
+--------------------------------------------------------------------------------
+Nav links                        Tab / Enter / Space  Navigate between pages
+Mode Switcher buttons            Tab / Enter / Space  Switch explore/game mode
+3D Canvas controls (planned)     Tab / Enter / Space  Center/Reset view
+Search input                     Auto-focus           Opens campus search
+Skip link                        Tab then Enter       Jumps to search panel
+Back/Forward buttons             Click / Enter        History navigation
+Mobile menu toggle               Enter / Space        Open/close mobile nav
+
+
+================================================================================
+7. ADMIN ROLE-BASED UI
+================================================================================
+
+Role              Permissions                                   Accessible Pages
+--------------------------------------------------------------------------------
+superadmin        All permissions inherited                      All admin pages
+subadmin          Granular per-module permissions                Filtered subset
+  notices:manage  Create/edit/delete notices                     Notices
+  faculty:manage  Edit faculty profiles and statuses             Faculty
+  rooms:manage    Update room details and positions               Rooms, Departments
+  reports:view    Access platform analytics and stats             Analytics
+  superadmin      Full admin access (navigation, import/export,
+                   user management)
+Security Features  : Account lockout (15 min), suspension, email verification
+                      forced password change on first login, audit logging
+
+
+================================================================================
+8. FORM PATTERNS & VALIDATION
+================================================================================
+
+Standard Form Layout (All auth forms):
+  1. NeoCard container (w-full max-w-md, centered)
+  2. H1 title (text-2xl, font-black, uppercase, mb-6)
+  3. Success/Error banners (bold, colored)
+  4. Vertical form stack (space-y-4):
+     - Label (text-sm, font-bold, uppercase, mb-1)
+     - Input field (NeoInput or custom styled input)
+     - Disabled state during loading
+  5. Primary action button (full-width)
+  6. Helper links (center-aligned, text-sm, with bold underlined links)
+
+Validation:
+  - Client-side: required, type checks, password match
+  - Server-side: Zod schemas, API error display
+  - Loading state: button disabled, spinner text in button label
+
+
+================================================================================
+9. ANIMATION & MICRO-INTERACTIONS
+================================================================================
+
+Element                          Animation Type         Trigger
+--------------------------------------------------------------------------------
+NeoButton tap                     Framer Motion         whileTap={{ x: 2, y: 2 }}
+Search results entry              Framer Motion         initial: opacity=0, y=8
+Cinematic camera focus            Custom lerp + ease    Three.js useFrame
+Loading overlay fade               Framer Motion         opacity(0→1)
+Mode switcher active state         CSS transition        background-color swap
+Admin stats card hover             CSS transition        background shift
+Nav link hover                     CSS transform         translate(2px, 2px)
+
+
+================================================================================
+10. ICONS (Lucide React)
+================================================================================
+
+Used Throughout:
+  Search          → Search panel, header search button
+  MapPin          → Explore action in search results
+  Compass         → Navigate action in search results
+  Eye             → View action in search results
+  Users           → Home features, admin faculty/dashboard
+  Building2       → Home features, admin departments
+  DoorOpen        → Admin rooms link
+  Bell            → Admin notices link
+  Navigation      → Admin navigation link
+  BarChart3       → Admin analytics link
+  Upload          → Admin import/export link
+  ShieldAlert     → Admin user management link
+  Plus            → Add sub admin button
+  Edit2           → Edit user button
+  Trash2          → Delete user button
+  Loader2         → Loading spinner
+  Sparkles        → Explore mode icon
+  Gamepad2        → Game mode icon
+  Zap             → Game mode hint
+  Target          → Game mode objective
+  Trophy          → Game mode test button
+  Clock           → Game mode time left
+
+
+================================================================================
+11. CSS UTILITY CLASSES REFERENCE
+================================================================================
+
+Class               Purpose
+--------------------------------------------------------------------------------
+.page-wrapper       Root content wrapper, z-1, min-h-100svh
+.page-content       Main content padding-top 110px
+.neo-header         Fixed top navigation (z-9999)
+.neo-header-inner   White card container (3px border, 8px shadow, rounded-24px)
+.neo-logo           Brand link (flex, gap-8, font-bold, no-underline)
+.neo-logo-dot       Black circular brand dot (12px)
+.neo-nav            Desktop navigation flex container
+.neo-nav-link       Individual nav link (rounded, hover lift, active yellow)
+.neo-nav-btn        Secondary nav button (white, border, shadow)
+.neo-actions        Right-aligned actions container (margin-left: auto)
+.neo-search         Search button in header
+.neo-cta            Primary CTA button (black bg, rounded-full, shadow)
+.neo-mobile-toggle  Mobile hamburger button
+.neo-mobile-menu    Mobile dropdown menu
+.campus-shell       3D experience background layer
+.campus-card       Game mode HUD card styling
+.campus-progress   Health bar progress container
+.campus-progress-bar Animated progress fill
+.e-page            Admin page container
+.e-page-header     Admin page header section
+.e-page-title      Admin page H1
+.e-page-subtitle   Admin page subtitle text
+.e-stats-grid      Admin stats cards grid
+.e-stat-card       Admin stat card
+.e-stat-value      Large stat number
+.e-stat-label      Stat label text
+.e-links-grid      Admin navigation links grid
+.e-link-card       Admin nav card wrapper
+.e-nav-card        Admin nav card body
+.e-nav-icon        Admin nav card icon
+.e-nav-label       Admin nav card label
+.e-list            Admin list container
+.e-list-item       Admin list item card
+.e-list-body       Admin list item content
+.e-list-title      Admin list item title
+.e-list-subtitle   Admin list item subtitle
+.e-badge           Admin status/role badge
+.campus-search-dock Search panel dock positioning
+.page-theme-backdrop Decorative theme shapes
+
+
+================================================================================
+12. DATA FLOW & API INTEGRATION
+================================================================================
+
+API Endpoints (Consumed by UI):
+  GET  /api/search?q=...                      → Search results
+  POST /api/navigation/path                   → Route calculation
+  POST /api/auth/register                     → Account creation
+  POST /api/auth/forgot-password              → Password reset request
+  POST /api/auth/reset-password               → Password reset (token)
+  POST /api/auth/verify-email                 → Email verification
+  POST /api/admin/change-password             → Forced password change
+  GET  /api/admin/users                       → List users + audit logs
+  POST /api/admin/users                       → Create sub admin
+  PUT  /api/admin/users                       → Update sub admin
+  DELETE /api/admin/users?id=...              → Delete sub admin
+  POST /api/admin/import                      → Import data
+  GET  /api/admin/export                      → Export data
+
+Data Stores (Client-side Zustand):
+  AppState       → App mode, loading, panels
+  SearchState    → Query, results, recent searches
+  NavigationState→ Active route, waypoints, navigation status
+  WorldState     → Camera commands, focus targets
+  PlayerState    → Player position, spawn point
+
+
+================================================================================
+13. RESPONSIVE DESIGN SUMMARY
+================================================================================
+
+Screen Size         Layout Adaptation
+--------------------------------------------------------------------------------
+Desktop (>980px)    Full horizontal nav, search visible in header,
+                    two-column layouts, all panels docked
+Tablet (640-980px)  Nav hidden behind hamburger, search hidden,
+                    search panel becomes full-width dock
+Mobile (<480px)     Logo text hidden, reduced padding, stacked CTAs,
+                    full-width forms, simplified game HUD
+
+
+================================================================================
+14. DESIGN SYSTEM DOCUMENTATION REFERENCES
+================================================================================
+
+Primary Style Guide:
+  docs/JESSE_RAMEN_DESIGN.md — Implementation-ready design tokens,
+                                component rules, and accessibility criteria
+                                inspired by minimal documentation aesthetics.
+
+Built-in Skill:
+  .agents/skills/design-system/SKILL.md — Design system creation workflow
+                                          with tokens, components, and a11y
+
+
+================================================================================
+15. KNOWN UI PATTERNS & CONVENTIONS
+================================================================================
+
+Button Strategy     : All actions use NeoButton with semantic variants.
+                      Never use raw <button> without neo classes.
+Card Strategy       : Content containers use NeoCard. Admin pages extend
+                      with .e-{type} modifier classes.
+Form Strategy       : Labels uppercase + bold, inputs with NeoInput,
+                      errors in red-600, success in teal-800.
+Navigation Strategy : Global header provides primary navigation. Campus
+                      experience adds its own floating search dock.
+Loading Strategy    : SceneLoader for 3D, button loading text for forms.
+Accessibility       : Always include aria-labels on icon buttons, aria-live
+                      on dynamic regions, skip links on long pages.
+Motion Strategy     : Framer Motion for list animations + button taps.
+                      CSS transitions for hover/active states.
+Error Handling      : Inline error messages (never alert/confirm for UX errors).
+                      Modal confirmations only for destructive actions (delete).
+
+================================================================================
+END OF UI DOCUMENTATION
+================================================================================

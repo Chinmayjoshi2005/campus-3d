@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "computer-science",
+    "name": "Computer Science & Engineering",
+    "shortName": "CSE",
+    "floor": 1,
+    "position": { "x": 8, "y": 3, "z": -4 },
+    "color": "#4ecdc4"
+  },
+  {
+    "slug": "cse-aiml",
+    "name": "CSE — Artificial Intelligence & Machine Learning",
+    "shortName": "AIML",
+    "floor": 1,
+    "position": { "x": 14, "y": 3, "z": -8 },
+    "color": "#a855f7"
+  },
+  {
+    "slug": "electronics",
+    "name": "Electronics & Communication Engineering",
+    "shortName": "ECE",
+    "floor": 1,
+    "position": { "x": 2, "y": 3, "z": 0 },
+    "color": "#ff6b9d"
+  },
+  {
+    "slug": "mechanical",
+    "name": "Mechanical Engineering",
+    "shortName": "ME",
+    "floor": 2,
+    "position": { "x": -6, "y": 6, "z": 0 },
+    "color": "#ffe600"
+  },
+  {
+    "slug": "civil",
+    "name": "Civil Engineering",
+    "shortName": "CE",
+    "floor": 4,
+    "position": { "x": 0, "y": 12, "z": 4 },
+    "color": "#f97316"
+  },
+  {
+    "slug": "mathematics",
+    "name": "Mathematics",
+    "shortName": "MATH",
+    "floor": 3,
+    "position": { "x": -4, "y": 9, "z": 2 },
+    "color": "#3b82f6"
+  }
+]

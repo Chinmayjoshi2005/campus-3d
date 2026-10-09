@@ -1,0 +1,123 @@
+[
+  {
+    "roomNumber": "101",
+    "meshName": "room_001",
+    "name": "Room 101 — CSE Lecture",
+    "roomType": "classroom",
+    "floor": 0,
+    "position": { "x": -8, "y": 0, "z": 4 },
+    "wing": "A"
+  },
+  {
+    "roomNumber": "102",
+    "meshName": "room_102",
+    "name": "Principal Room",
+    "roomType": "office",
+    "floor": 0,
+    "position": { "x": -6, "y": 0, "z": 4 }
+  },
+  {
+    "roomNumber": "LIBRARY",
+    "meshName": "room_005",
+    "name": "Library",
+    "roomType": "library",
+    "floor": 0,
+    "position": { "x": 0, "y": 0, "z": 6 }
+  },
+  {
+    "roomNumber": "CANTEEN",
+    "meshName": "room_006",
+    "name": "Canteen",
+    "roomType": "canteen",
+    "floor": 0,
+    "position": { "x": 4, "y": 0, "z": 8 }
+  },
+  {
+    "roomNumber": "HOD-CSE",
+    "meshName": "room_008",
+    "name": "HOD CSE Cabin",
+    "roomType": "office",
+    "floor": 0,
+    "position": { "x": 6, "y": 0, "z": -2 }
+  },
+  {
+    "roomNumber": "Seminar Hall",
+    "meshName": "room_010",
+    "name": "Seminar Hall",
+    "roomType": "auditorium",
+    "floor": 0,
+    "position": { "x": 10, "y": 0, "z": 0 }
+  },
+  {
+    "roomNumber": "Lab-CS1",
+    "meshName": "room_014",
+    "name": "CS Lab 1",
+    "roomType": "lab",
+    "floor": 1,
+    "position": { "x": -4, "y": 3, "z": 2 }
+  },
+  {
+    "roomNumber": "Lab-AI",
+    "meshName": "room_016",
+    "name": "AI / ML Lab",
+    "roomType": "lab",
+    "floor": 1,
+    "position": { "x": 0, "y": 3, "z": 0 }
+  },
+  {
+    "roomNumber": "C-201",
+    "meshName": "room_019",
+    "name": "Cabin C-201",
+    "roomType": "office",
+    "floor": 1,
+    "position": { "x": 4, "y": 3, "z": -2 }
+  },
+  {
+    "roomNumber": "C-202",
+    "meshName": "room_022",
+    "name": "Cabin C-202",
+    "roomType": "office",
+    "floor": 1,
+    "position": { "x": 6, "y": 3, "z": -2 }
+  },
+  {
+    "roomNumber": "C-205",
+    "meshName": "room_205",
+    "name": "Cabin C-205",
+    "roomType": "office",
+    "floor": 1,
+    "position": { "x": 8, "y": 3, "z": -4 }
+  },
+  {
+    "roomNumber": "C-206",
+    "meshName": "room_024",
+    "name": "Cabin C-206",
+    "roomType": "office",
+    "floor": 1,
+    "position": { "x": 10, "y": 3, "z": -4 }
+  },
+  {
+    "roomNumber": "C-232",
+    "meshName": "room_232",
+    "name": "AIML HOD Room",
+    "roomType": "office",
+    "floor": 1,
+    "position": { "x": 14, "y": 3, "z": -8 }
+  },
+  {
+    "roomNumber": "301",
+    "meshName": "room_025",
+    "name": "ME Lecture Room",
+    "roomType": "classroom",
+    "floor": 2,
+    "position": { "x": -6, "y": 6, "z": 0 }
+  },
+  {
+    "roomNumber": "401",
+    "meshName": "room_031",
+    "name": "Mathematics",
+    "roomType": "classroom",
+    "floor": 3,
+    "position": { "x": -4, "y": 9, "z": 2 }
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "nodeId": "N-ENT-01",
+    "name": "Main Entrance",
+    "nodeType": "entrance",
+    "floor": 0,
+    "position": { "x": 0, "y": 0, "z": 10 }
+  },
+  {
+    "nodeId": "N-GF-01",
+    "name": "Ground Floor Lobby",
+    "nodeType": "corridor",
+    "floor": 0,
+    "position": { "x": 0, "y": 0, "z": 4 }
+  },
+  {
+    "nodeId": "N-GF-02",
+    "name": "Ground Floor — West Wing",
+    "nodeType": "junction",
+    "floor": 0,
+    "position": { "x": -6, "y": 0, "z": 2 }
+  },
+  {
+    "nodeId": "N-ST-01",
+    "name": "Main Staircase — Ground",
+    "nodeType": "stairs",
+    "floor": 0,
+    "position": { "x": 2, "y": 0, "z": 0 }
+  },
+  {
+    "nodeId": "N-ST-02",
+    "name": "Main Staircase — 1st Floor",
+    "nodeType": "stairs",
+    "floor": 1,
+    "position": { "x": 2, "y": 3, "z": 0 }
+  },
+  {
+    "nodeId": "N-1F-01",
+    "name": "1st Floor Corridor",
+    "nodeType": "corridor",
+    "floor": 1,
+    "position": { "x": 6, "y": 3, "z": -2 }
+  },
+  {
+    "nodeId": "N-RM-C205",
+    "name": "C-205 Entrance",
+    "nodeType": "room",
+    "floor": 1,
+    "roomNumber": "C-205",
+    "position": { "x": 8, "y": 3, "z": -4 }
+  },
+  {
+    "nodeId": "N-RM-C206",
+    "name": "C-206 Entrance",
+    "nodeType": "room",
+    "floor": 1,
+    "roomNumber": "C-206",
+    "position": { "x": 10, "y": 3, "z": -4 }
+  },
+  {
+    "nodeId": "N-RM-C232",
+    "name": "C-232 Entrance",
+    "nodeType": "room",
+    "floor": 1,
+    "roomNumber": "C-232",
+    "position": { "x": 14, "y": 3, "z": -8 }
+  }
+]

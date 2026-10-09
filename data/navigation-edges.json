@@ -1,0 +1,10 @@
+[
+  { "fromNodeId": "N-ENT-01", "toNodeId": "N-GF-01", "weight": 6, "bidirectional": true },
+  { "fromNodeId": "N-GF-01", "toNodeId": "N-GF-02", "weight": 6, "bidirectional": true },
+  { "fromNodeId": "N-GF-01", "toNodeId": "N-ST-01", "weight": 4, "bidirectional": true },
+  { "fromNodeId": "N-ST-01", "toNodeId": "N-ST-02", "weight": 4.5, "bidirectional": true },
+  { "fromNodeId": "N-ST-02", "toNodeId": "N-1F-01", "weight": 4, "bidirectional": true },
+  { "fromNodeId": "N-1F-01", "toNodeId": "N-RM-C205", "weight": 3, "bidirectional": true },
+  { "fromNodeId": "N-1F-01", "toNodeId": "N-RM-C206", "weight": 4, "bidirectional": true },
+  { "fromNodeId": "N-1F-01", "toNodeId": "N-RM-C232", "weight": 8, "bidirectional": true }
+]

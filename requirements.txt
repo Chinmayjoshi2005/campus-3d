@@ -1,0 +1,69 @@
+Campus Guide 3D - Complete Project Run Instructions
+===================================================
+
+The complete user-facing experience runs in one browser app:
+- Next.js serves the home page and campus directory.
+- The app serves the included Unity WebGL build for 3D Explore and Game modes.
+- Directory and navigation data are included as JSON in the web app.
+
+This is not a Python project. This file documents the setup; it is not a pip
+requirements file.
+
+Requirements
+------------
+- Node.js 20 or newer
+- npm (included with Node.js)
+- A modern web browser
+- WebGL support enabled in the browser (recommended for 3D/Game modes)
+- Git (for cloning the project and its web-platform submodule)
+
+Clone the complete project
+--------------------------
+Run these commands in a terminal:
+
+   git clone --recurse-submodules https://github.com/Chinmayjoshi2005/Campus-Guide-3D.git
+   cd Campus-Guide-3D/web-platform
+
+The `--recurse-submodules` option is required because the web app is stored in
+the `web-platform` submodule. If you already cloned without it, run this from
+the project root before changing into `web-platform`:
+
+   git submodule update --init --recursive
+
+Do not use a GitHub ZIP for setup; it may not contain the submodule contents.
+
+Run the complete app locally
+----------------------------
+From the `web-platform` directory, install dependencies and start the app:
+
+   npm ci
+   npm run dev
+
+Keep the terminal open and visit http://localhost:3000. Choose Explore, Game,
+or Directory from the app. Press Ctrl+C to stop the server.
+
+The Unity WebGL files used in Explore and Game modes are already included under
+`web-platform/public/unity`. The Next.js server serves these files along with
+the rest of the application, so do not launch the `UnityWebGL` folder
+separately for the complete experience.
+
+No separate Blender, Unity Editor, or MongoDB process is required to run the
+included experience. Those tools are only needed for asset authoring/rebuilds
+or optional database tasks, not for this standard local run.
+
+Run a production build locally
+------------------------------
+From the `web-platform` directory:
+
+   npm ci
+   npm run build
+   npm run start
+
+Then visit http://localhost:3000. Keep the terminal open while using the app;
+press Ctrl+C to stop the server.
+
+Dependency management
+---------------------
+The exact application dependencies and scripts are in `web-platform/package.json`
+and `web-platform/package-lock.json`. Use `npm ci` in `web-platform`; do not
+run `pip install -r requirements.txt`.
